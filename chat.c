@@ -297,4 +297,7 @@ void* recvMsg(void*)
 		g_main_context_invoke(NULL,shownewmessage,(gpointer)m);
 	}
 	return 0;
+	
 }
+
+
