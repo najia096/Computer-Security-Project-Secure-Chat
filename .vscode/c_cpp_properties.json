@@ -1,18 +1,19 @@
 {
-  "configurations": [
-    {
-      "name": "macos-clang-x64",
-      "includePath": [
-        "${workspaceFolder}/**"
-      ],
-      "compilerPath": "/usr/bin/clang",
-      "cStandard": "${default}",
-      "cppStandard": "${default}",
-      "intelliSenseMode": "macos-clang-x64",
-      "compilerArgs": [
-        ""
-      ]
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "macos-clang-x64",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/gtk+3/3.24.41/include/gtk-3.0"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "intelliSenseMode": "macos-clang-x64",
+            "compilerArgs": [
+                ""
+            ]
+        }
+    ],
+    "version": 4
 }
