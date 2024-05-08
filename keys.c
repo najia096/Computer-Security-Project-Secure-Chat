@@ -128,3 +128,4 @@ char *hashPK(dhKey *k, char *hash)
 	}
 	return hash;
 }
+
