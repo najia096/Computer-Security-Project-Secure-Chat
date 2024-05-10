@@ -59,6 +59,7 @@
   "files.associations": {
     "getopt.h": "c",
     "gmp.h": "c",
-    "endian.h": "c"
+    "endian.h": "c",
+    "stdlib.h": "c"
   }
 }

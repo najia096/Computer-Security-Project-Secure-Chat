@@ -48,6 +48,12 @@ extern "C"
 	/** same as dh3Final, but accepts keys instead */
 	int dh3Finalk(dhKey *skA, dhKey *skX, dhKey *pkB, dhKey *pkY,
 				  unsigned char *keybuf, size_t buflen);
+	// Function prototypes for ephemeral key generation
+    int generateEphemeralKey(mpz_t sk, mpz_t pk); // Generate ephemeral key pair (sk, pk)
+
+    // Function prototypes for shared secret computation
+    int computeSharedSecret(mpz_t sk_self, mpz_t pk_self, mpz_t pk_other, mpz_t shared_secret); // Compute shared secret using own secret key and other's public key
+
 #ifdef __cplusplus
 }
 #endif
