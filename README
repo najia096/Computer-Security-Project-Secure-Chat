@@ -1,0 +1,20 @@
+1. Establishing a Connection with the Server (establishConnection):
+
+   - This function sets up a TCP socket connection with the server using the socket, connect, and related system calls.
+
+2. Performing Handshake (performHandshake):
+
+   - This function handles the secure setup of communication between the client and the server, including key exchange and mutual authentication.
+   - It generates a Diffie-Hellman key pair for the client (clientKey) and sends the public key to the server.
+   - Then it receives the server's public key and computes the shared secret using both the client and server keys.
+   - Finally, it performs mutual authentication by checking if the computed shared secret matches.
+
+3. Sending and Receiving Encrypted Messages:
+
+   - sendEncryptedMessageToServer and receiveEncryptedMessageFromServer functions are provided for sending and receiving encrypted messages, respectively.
+   - These functions handle sending and receiving messages over the established socket connection.
+   - Messages are encrypted using AES encryption and authenticated using HMAC.
+
+4. Main Function:
+   - It first performs the handshake to establish secure communication.
+   - Then it demonstrates sending and receiving encrypted messages between the client and the server.
