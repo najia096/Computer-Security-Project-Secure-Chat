@@ -20,7 +20,7 @@ It aims to foster familiarity with cryptographic libraries, protocol design, net
 
 We have used MacOS system for this project
 
-- Clone the github repo and open the terminal.
+- Clone the github repo and open the terminal
 - Ensure you have the necessary dependencies installed, including OpenSSL, GTK, GMP, and GTK3
 - Compile the source code using the provided Makefile. Run make to build the executable files
 - Start the server by running ./chat -h and then ./chat -l & sleep 1 && ./chat -c localhost &
