@@ -1,12 +1,14 @@
 #pragma once
 #include <gmp.h>
 /* convenience macros */
-#define ISPRIME(x) mpz_probab_prime_p(x,10)
-#define NEWZ(x) mpz_t x; mpz_init(x)
+#define ISPRIME(x) mpz_probab_prime_p(x, 10)
+#define NEWZ(x) \
+    mpz_t x;    \
+    mpz_init(x)
 /* these will read/write integers from byte arrays where the
  * least significant byte is first (little endian bytewise). */
-#define BYTES2Z(x,buf,len) mpz_import(x,len,-1,1,0,0,buf)
-#define Z2BYTES(buf,len,x) mpz_export(buf,len,-1,1,0,0,x)
+#define BYTES2Z(x, buf, len) mpz_import(x, len, -1, 1, 0, 0, buf)
+#define Z2BYTES(buf, len, x) mpz_export(buf, len, -1, 1, 0, 0, x)
 #define LE(x) uint32_t x##_le = htole32((uint32_t)x);
 
 /* utility functions */
@@ -32,8 +34,3 @@ void xread(int fd, void *buf, size_t nBytes);
 /** Like write(), but retry on EINTR and EWOULDBLOCK,
  * abort on other errors, and don't return early. */
 void xwrite(int fd, const void *buf, size_t nBytes);
-
-// Function prototypes for key serialization and deserialization
-void serializeKey(mpz_t key, unsigned char *serialized_key, size_t max_length);    // Serialize key
-void deserializeKey(const unsigned char *serialized_key, size_t length, mpz_t key); // Deserialize key
-

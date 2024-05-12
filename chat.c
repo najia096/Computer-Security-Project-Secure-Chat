@@ -6,18 +6,9 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include <openssl/rand.h>
 #include <getopt.h>
 #include "dh.h"
 #include "keys.h"
-#define MAX_KEY_LENGTH 256
-#define MESSAGE_MAX_LENGTH 1024
-#define TAG_LENGTH 16 // Length of the HMAC tag
-
-void serializeKey(dhKey *key, unsigned char *serialized_key, size_t max_length);
-void deserializeKey(unsigned char *serialized_key, size_t length, dhKey *key);
-void performKeyExchangeAndAuthentication(dhKey *self_key, dhKey *other_key);
-void encryptAndSendMessage(const char *message);
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
@@ -36,7 +27,10 @@ static GtkTextMark *mark;	/* used for scrolling to end of transcript, etc */
 static pthread_t trecv; /* wait for incoming messagess and post to queue */
 void *recvMsg(void *);	/* for trecv */
 
-#define max(a, b) ({ typeof(a) _a = a; typeof(b) _b = b; _a > _b ? _a : _b; })
+#define max(a, b) \
+	({ typeof(a) _a = a;    \
+	 typeof(b) _b = b;    \
+	 _a > _b ? _a : _b; })
 
 /* network stuff... */
 
@@ -115,97 +109,6 @@ static int shutdownNetwork()
 
 /* end network stuff. */
 
-void serializeKey(dhKey *key, unsigned char *serialized_key, size_t max_length)
-{
-	// Serialize the public and secret keys into a byte array
-	// You may need to adjust the format based on your specific requirements
-	snprintf(serialized_key, max_length, "%s:%Zx:%Zx", key->name, key->PK, key->SK);
-}
-
-void deserializeKey(unsigned char *serialized_key, size_t length, dhKey *key)
-{
-	// Deserialize the byte array into a DH key
-	char name[MAX_NAME + 1];
-	mpz_t PK, SK;
-	sscanf(serialized_key, "%[^:]:%Zx:%Zx", name, PK, SK);
-	strncpy(key->name, name, MAX_NAME);
-	mpz_set(key->PK, PK);
-	mpz_set(key->SK, SK);
-}
-
-void performKeyExchangeAndAuthentication(dhKey *self_key, dhKey *other_key)
-{
-	// Generate ephemeral keys for both parties
-	dhKey self_ephemeral, other_ephemeral;
-	initKey(&self_ephemeral);
-	initKey(&other_ephemeral);
-	dhGen(&self_ephemeral.SK, &self_ephemeral.PK);
-	dhGen(&other_ephemeral.SK, &other_ephemeral.PK);
-
-	// Serialize own ephemeral key
-	unsigned char serialized_self_ephemeral[MAX_KEY_LENGTH];
-	serializeKey(&self_ephemeral, serialized_self_ephemeral, MAX_KEY_LENGTH);
-
-	// Serialize other party's ephemeral key
-	unsigned char serialized_other_ephemeral[MAX_KEY_LENGTH];
-	serializeKey(&other_ephemeral, serialized_other_ephemeral, MAX_KEY_LENGTH);
-
-	// Exchange serialized ephemeral keys
-	send(sockfd, serialized_self_ephemeral, MAX_KEY_LENGTH, 0);
-	recv(sockfd, serialized_other_ephemeral, MAX_KEY_LENGTH, 0);
-
-	// Deserialize other party's ephemeral key
-	deserializeKey(serialized_other_ephemeral, MAX_KEY_LENGTH, other_key);
-
-	// Serialize own long-term key
-	unsigned char serialized_self_long_term[MAX_KEY_LENGTH];
-	serializeKey(self_key, serialized_self_long_term, MAX_KEY_LENGTH);
-
-	// Serialize other party's long-term key
-	unsigned char serialized_other_long_term[MAX_KEY_LENGTH];
-	serializeKey(other_key, serialized_other_long_term, MAX_KEY_LENGTH);
-
-	// Send own long-term key
-	send(sockfd, serialized_self_long_term, MAX_KEY_LENGTH, 0);
-
-	// Receive other party's long-term key
-	recv(sockfd, serialized_other_long_term, MAX_KEY_LENGTH, 0);
-
-	// Deserialize other party's long-term key
-	deserializeKey(serialized_other_long_term, MAX_KEY_LENGTH, other_key);
-}
-
-void encryptAndSendMessage(const char *message)
-{
-	// Step 1: Generate a shared secret key using Diffie-Hellman key exchange and perform mutual authentication
-	dhKey pk_self, pk_other;
-	performKeyExchangeAndAuthentication(&pk_self, &pk_other);
-
-	// Step 2: Encrypt the message using AES with CBC mode
-	unsigned char iv[EVP_MAX_IV_LENGTH];
-	RAND_bytes(iv, EVP_MAX_IV_LENGTH); // Generate random IV
-	EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-	EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, pk_self.SK, iv);
-
-	// Calculate the ciphertext length
-	int ciphertext_len = 0;
-	int plaintext_len = strlen(message);
-	unsigned char ciphertext[MESSAGE_MAX_LENGTH + EVP_MAX_BLOCK_LENGTH];
-	EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len, (unsigned char *)message, plaintext_len);
-	int ciphertext_final_len = 0;
-	EVP_EncryptFinal_ex(ctx, ciphertext + ciphertext_len, &ciphertext_final_len);
-	ciphertext_len += ciphertext_final_len;
-
-	// Step 3: Compute HMAC (Message Authentication Code)
-	unsigned char hmac_tag[TAG_LENGTH];
-	HMAC(EVP_sha256(), pk_self.SK, EVP_MD_size(EVP_sha256()), ciphertext, ciphertext_len, hmac_tag, NULL);
-
-	// Step 4: Send the IV, ciphertext, and HMAC tag over the network
-	send(sockfd, iv, EVP_MAX_IV_LENGTH, 0);
-	send(sockfd, ciphertext, ciphertext_len, 0);
-	send(sockfd, hmac_tag, TAG_LENGTH, 0);
-}
-
 static const char *usage =
 	"Usage: %s [OPTIONS]...\n"
 	"Secure chat (CCNY computer security project).\n\n"
@@ -248,39 +151,25 @@ static void tsappend(char *message, char **tagnames, int ensurenewline)
 	gtk_text_buffer_delete_mark(tbuf, mark);
 }
 
-static void sendMessage(GtkWidget *w, gpointer data)
+static void sendMessage(GtkWidget *w /* <-- msg entry widget */, gpointer /* data */)
 {
-	// Perform key exchange and authentication
-	dhKey pk_self, pk_other;
-	unsigned char serialized_pk_self[MAX_KEY_LENGTH], serialized_pk_other[MAX_KEY_LENGTH];
-	initKey(&pk_self);
-	initKey(&pk_other);
-
-	// Serialize self's public key
-	serializeKey(&pk_self, serialized_pk_self, MAX_KEY_LENGTH);
-	// Send self's public key
-	send(sockfd, serialized_pk_self, MAX_KEY_LENGTH, 0);
-	// Receive other's public key
-	recv(sockfd, serialized_pk_other, MAX_KEY_LENGTH, 0);
-	// Deserialize other's public key
-	deserializeKey(serialized_pk_other, MAX_KEY_LENGTH, &pk_other);
-
-	// Perform key exchange and authentication
-	performKeyExchangeAndAuthentication(&pk_self, &pk_other);
-
-	// Get the message from the text buffer
-	GtkTextIter mstart, mend;
+	char *tags[2] = {"self", NULL};
+	tsappend("me: ", tags, 0);
+	GtkTextIter mstart; /* start of message pointer */
+	GtkTextIter mend;	/* end of message pointer */
 	gtk_text_buffer_get_start_iter(mbuf, &mstart);
 	gtk_text_buffer_get_end_iter(mbuf, &mend);
-	char *message = gtk_text_buffer_get_text(mbuf, &mstart, &mend, TRUE);
+	char *message = gtk_text_buffer_get_text(mbuf, &mstart, &mend, 1);
+	size_t len = g_utf8_strlen(message, -1);
+	/* XXX we should probably do the actual network stuff in a different
+	 * thread and have it call this once the message is actually sent. */
+	ssize_t nbytes;
+	if ((nbytes = send(sockfd, message, len, 0)) == -1)
+		error("send failed");
 
-	// Encrypt and send the message
-	encryptAndSendMessage(message);
-
-	// Free allocated memory
-	g_free(message);
-
-	// Clear the message text and reset focus
+	tsappend(message, NULL, 1);
+	free(message);
+	/* clear message text and reset focus */
 	gtk_text_buffer_delete(mbuf, &mstart, &mend);
 	gtk_widget_grab_focus(w);
 }
