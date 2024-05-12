@@ -135,8 +135,8 @@ int initFromScratch(size_t qbits, size_t pbits)
 		fread(tCand, 1, tLen, f);
 		BYTES2Z(t, tCand, tLen);
 		if (mpz_cmp_ui(t, 0) == 0)
-			continue;		  /* really unlucky! */
-		mpz_powm(g, t, r, p); /* efficiently do g = t**r % p */
+			continue;				 /* really unlucky! */
+		mpz_powm(g, t, r, p);		 /* efficiently do g = t**r % p */
 	} while (mpz_cmp_ui(g, 1) == 0); /* since q prime, any such g /= 1
 										will actually be a generator of
 										the subgroup. */
