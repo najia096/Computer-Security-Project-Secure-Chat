@@ -10,11 +10,26 @@ This project is designed to provide secure communication between users over a ne
 It aims to foster familiarity with cryptographic libraries, protocol design, network programming, and software security principles.
 
 ## Key Features
+- Encryption: Messages are encrypted to keep them private.
+- Authentication: Mutual authentication ensures the identity of users.
+- Integrity: Messages are tagged to detect tampering.
+- Forward Secrecy: Ephemeral keys provide extra security.
+- Deniable Authentication: Users can authenticate without leaving traces.
 
-- End-to-End Encryption: Messages exchanged between clients and the server are encrypted using AES with CBC mode, ensuring confidentiality.
-- Message Authentication: Each message is tagged with a Message Authentication Code (MAC) to detect any tampering or unauthorized changes.
-- Perfect Forward Secrecy: Ephemeral keys are generated for each session using the Diffie-Hellman key exchange protocol, providing perfect forward secrecy.
-- Mutual Authentication: Clients and the server mutually authenticate each other using public-key cryptography, ensuring the identity of the communicating parties.
+## Modifications 
+To enhance the security of the chat application, the following modifications have been made in the back-end (chat.c):
+
+- generateEphemeralKey: Added a function to generate ephemeral keys for the session using the Diffie-Hellman key exchange mechanism provided by the dh.h header.
+
+- exchangeKeys: Implemented a function to handle the exchange of keys between the client and server. It serializes the keys using the mpz_serialize function from the util.h header and sends them over the network.
+
+- computeSharedSecret: Introduced a function to compute the shared secret using the Diffie-Hellman key exchange mechanism. It takes the local private key, the local public key, and the remote public key as input and computes the shared secret.
+
+- encryptMessage: Developed a function to encrypt a message using the shared secret computed during the key exchange phase. Utilizes symmetric encryption with AES in CBC mode provided by the OpenSSL library.
+
+- decryptMessage: Implemented a function to decrypt a message using the shared secret. Performs the reverse operation of the encryptMessage function.
+
+- authenticate: Implemented mutual authentication between the client and server using public key cryptography. It signs a message with the private key and verifies the signature using the public key.
 
 ## Getting Started
 
