@@ -8,7 +8,7 @@
 #include <openssl/sha.h>
 
 extern int gmp_fprintf(FILE *, const char *, ...);
-extern int gmp_fscanf(FILE *, const char *, ...);
+extern int gmp_fscanf (FILE *, const char *, ...);
 int initKey(dhKey *k)
 {
 	assert(k);
