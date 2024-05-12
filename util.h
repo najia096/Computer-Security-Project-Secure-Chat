@@ -32,3 +32,8 @@ void xread(int fd, void *buf, size_t nBytes);
 /** Like write(), but retry on EINTR and EWOULDBLOCK,
  * abort on other errors, and don't return early. */
 void xwrite(int fd, const void *buf, size_t nBytes);
+
+// Function prototypes for key serialization and deserialization
+void serializeKey(mpz_t key, unsigned char *serialized_key, size_t max_length);    // Serialize key
+void deserializeKey(const unsigned char *serialized_key, size_t length, mpz_t key); // Deserialize key
+
