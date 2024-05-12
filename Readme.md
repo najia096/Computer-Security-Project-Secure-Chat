@@ -1,4 +1,4 @@
-# Computer Security Project: Secure(?) Chat
+# Computer Security Project: Secure Chat
 
 ## Team Members
 
