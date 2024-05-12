@@ -1,10 +1,36 @@
 {
+  "files.associations": {
+    "endian.h": "c",
+    "__locale": "c",
+    "atomic": "c",
+    "bit": "c",
+    "codecvt": "c",
+    "compare": "c",
+    "cstddef": "c",
+    "filesystem": "c",
+    "ios": "c",
+    "limits": "c",
+    "locale": "c",
+    "new": "c",
+    "string": "c",
+    "type_traits": "c",
+    "variant": "c",
+    "charconv": "c",
+    "chrono": "c",
+    "condition_variable": "c",
+    "list": "c",
+    "optional": "c",
+    "format": "c",
+    "memory": "c",
+    "mutex": "c",
+    "functional": "c"
+  },
+  "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.cCompilerPath": "clang",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
   "C_Cpp_Runner.debuggerPath": "lldb",
   "C_Cpp_Runner.cStandard": "",
   "C_Cpp_Runner.cppStandard": "",
-  "C_Cpp_Runner.msvcBatchPath": "",
   "C_Cpp_Runner.useMsvc": false,
   "C_Cpp_Runner.warnings": [
     "-Wall",
@@ -55,11 +81,5 @@
   "C_Cpp_Runner.useLeakSanitizer": false,
   "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
-  "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "files.associations": {
-    "getopt.h": "c",
-    "gmp.h": "c",
-    "endian.h": "c",
-    "stdlib.h": "c"
-  }
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }
